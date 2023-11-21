@@ -15,14 +15,31 @@ def create_new_name(old_file_name: str) -> list:
     pattern2 = r'\d{2}\.\d{2}\.\d{4}'
     dates = re.findall(pattern2, text)
     max_data = '.'.join(list(reversed(str(max([datetime.strptime(i, '%d.%m.%Y') for i in dates]))[:10].split('-'))))
-    new_file_name = f'{number} {max_data}.pdf'
-    if len(new_file_name) == 26:
+    try:
+        name_driver = find_name_driver(old_file_name)
+    except:
+        name_driver = 'NO NAME'
+    print(name_driver)
+    new_file_name = f'{number} {max_data}'
+    if len(new_file_name) == 22:
+        new_file_name += f' {name_driver}.pdf'
         return [old_file_name, new_file_name]
     return None
 
 
 def find_pdf_files() -> list:
     return glob.glob('AxaptaReport*.pdf')
+
+
+def find_name_driver(old_file_name: str) -> str:
+    with open(old_file_name, 'rb') as pdfFileObj:
+        pdfReader = PyPDF2.PdfReader(pdfFileObj)
+        max_page = list(pdfReader.pages)
+        pageObj = pdfReader.pages[len(max_page) - 1]
+        text = pageObj.extract_text()
+    pattern = r'(?<=Выданной : )[а-яА-ЯёЁ]*'
+    return re.search(pattern, text)[0]
+    
 
 
 def check_unique(data: list) -> list:
@@ -46,7 +63,8 @@ def create_error_report(error: dict) -> None:
     with open('ERROR.txt', 'w') as f:
         for key, value in error.items():
             f.write(f'{key}: {value}')
- 
+
+
 if __name__ == '__main__':
     pdf_files = find_pdf_files()
     old_new_files = [create_new_name(i) for i in pdf_files]
