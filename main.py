@@ -6,8 +6,7 @@ import os
 
 
 def create_new_name(old_file_name: str) -> list:
-    text_first_page = read_text(old_file_name)
-    text_last_page = read_text(old_file_name, first=False)
+    text_first_page, text_middle_pages, text_last_page = read_text(old_file_name)
     try:
         number = find_invoice_name(text_first_page)
     except:
@@ -29,7 +28,27 @@ def create_new_name(old_file_name: str) -> list:
     except:
         weight = '0.0'
     new_file_name = f'{name_company} {number} {max_data} {name_driver} {weight}кг.pdf'
+    all_sku = find_order_sku(text_first_page + text_middle_pages + text_last_page)
+    all_sku = '\n'.join([str(i) for i in all_sku])
+    write_report(f'{new_file_name}\n{all_sku}\n\n')
+    
     return [old_file_name, new_file_name]
+
+
+def write_report(text):
+    with open('REPORT.txt', 'a') as f:
+        f.write(text)
+
+
+def find_order_sku(text):
+    data = []
+    pattern1 = r'SU[0-9]{6}'
+    pattern2 = r'[0-9]+,00 [0-9]+\.[0-9]+\.?[0-9]*'
+    res1 = re.findall(pattern1, text)
+    res2 = re.findall(pattern2, text)
+    res2 = [i.split() for i in res2]
+    data.extend(list(zip(res1, res2)))
+    return data
 
 
 def find_weight(text):
@@ -85,15 +104,24 @@ def create_error_report(error: dict) -> None:
         for key, value in error.items():
             f.write(f'{key}: {value}')
 
-def read_text(old_file_name: str, first=True) -> str:
+def read_text(old_file_name: str) -> list:
     with open(old_file_name, 'rb') as pdfFileObj:
         pdfReader = PyPDF2.PdfReader(pdfFileObj)
-        if first:
-            pageObj = pdfReader.pages[0]
+        max_page = list(pdfReader.pages)
+        middle = []
+        for i in range(len(max_page)):
+            pageObj = pdfReader.pages[i]
+            if i == 0:
+                start = pageObj.extract_text()
+            elif i == len(max_page) - 1:
+                end = pageObj.extract_text()
+            else:
+                middle.append(pageObj.extract_text())
+        if middle:
+            middle = '\n\n#new page#\n\n'.join(middle)
         else:
-            max_page = list(pdfReader.pages)
-            pageObj = pdfReader.pages[len(max_page) - 1]
-        return pageObj.extract_text()
+            middle = ''
+    return start, middle, end
 
 
 
