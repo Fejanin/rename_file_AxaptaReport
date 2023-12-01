@@ -30,24 +30,27 @@ def create_new_name(old_file_name: str) -> list:
     new_file_name = f'{name_company} {number} {max_data} {name_driver} {weight}кг.pdf'
     all_sku = find_order_sku(text_first_page + text_middle_pages + text_last_page)
     all_sku = '\n'.join([str(i) for i in all_sku])
-    write_report(f'{new_file_name}\n{all_sku}\n\n')
+    write_report(f'{new_file_name}\n{all_sku}\n\n', name_driver)
     
     return [old_file_name, new_file_name]
 
 
-def write_report(text):
-    with open('REPORT.txt', 'a') as f:
+def write_report(text, name_driver):
+    with open(f'{name_driver}.txt', 'a') as f:
         f.write(text)
 
 
 def find_order_sku(text):
     data = []
-    pattern1 = r'SU[0-9]{6}'
-    pattern2 = r'[0-9]+,00 [0-9]+\.[0-9]+\.?[0-9]*'
+    pattern1 = r'SU[0-9]{6}' # № СКЮ
+    pattern2 = r'[0-9]+,00 [0-9]+\.[0-9]+\.?[0-9]*' # коробки, вес брутто
+    pattern3 = r'\bра[0-9\s]+,[0-9]+' # штуки/вес нетто
     res1 = re.findall(pattern1, text)
     res2 = re.findall(pattern2, text)
+    res3 = re.findall(pattern3, text)
     res2 = [i.split() for i in res2]
-    data.extend(list(zip(res1, res2)))
+    res3 = [re.sub(r'\s', '_', i[2:]) for i in res3]
+    data.extend(list(zip(res1, res2, res3)))
     return data
 
 
@@ -128,11 +131,8 @@ def read_text(old_file_name: str) -> list:
 if __name__ == '__main__':
     pdf_files = find_pdf_files()
     old_new_files = [create_new_name(i) for i in pdf_files]
-    #print(f'{old_new_files = }')
     error = check_unique(old_new_files)
-    #print(f'{error = }')
     not_rename = [item for sublist in error.values() for item in sublist]
-    #print(f'{not_rename = }')
     for old, new in old_new_files:
         if not old in not_rename:
             rename_file(old, new)
