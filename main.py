@@ -43,12 +43,17 @@ def write_report(text, name_driver):
 def find_order_sku(text):
     data = []
     pattern1 = r'SU[0-9]{6}' # № СКЮ
-    pattern2 = r'[0-9]+,00 [0-9]+\.[0-9]+\.?[0-9]*' # коробки, вес брутто
+    # pattern2 = r'(?<=[0-9] )[0-9]+,00 [0-9]+\.[0-9]+\.?[0-9]*' # коробки, вес брутто
+    pattern2 = r'(?<=[0-9] )[0-9]+?\s?[0-9]*,00 [0-9]+\.[0-9]+\.?[0-9]*' # коробки, вес брутто
     pattern3 = r'\bра[0-9\s]+,[0-9]+' # штуки/вес нетто
     res1 = re.findall(pattern1, text)
     res2 = re.findall(pattern2, text)
     res3 = re.findall(pattern3, text)
     res2 = [i.split() for i in res2]
+    print(f'{res2 = }')
+    for i in range(len(res2)):
+        if len(res2[i]) > 2:
+            res2[i] = [res2[i][0] + res2[i][1], res2[i][2]]
     res3 = [re.sub(r'\s', '_', i[2:]) for i in res3]
     data.extend(list(zip(res1, res2, res3)))
     return data
