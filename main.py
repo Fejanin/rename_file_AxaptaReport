@@ -50,7 +50,6 @@ def find_order_sku(text):
     res2 = re.findall(pattern2, text)
     res3 = re.findall(pattern3, text)
     res2 = [i.split() for i in res2]
-    print(f'{res2 = }')
     for i in range(len(res2)):
         if len(res2[i]) > 2:
             res2[i] = [res2[i][0] + res2[i][1], res2[i][2]]
