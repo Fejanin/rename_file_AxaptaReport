@@ -36,7 +36,7 @@ def create_new_name(old_file_name: str) -> list:
 
 
 def write_report(text, name_driver):
-    with open(f'{name_driver}.txt', 'a') as f:
+    with open(f'{name_driver}.txt', 'a', encoding='utf-8') as f:
         f.write(text)
 
 
