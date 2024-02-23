@@ -64,7 +64,8 @@ def find_weight(text):
 
 
 def find_invoice_name(text):
-    pattern = r'[a-zA-Zа-яА-ЯёЁ]{2}\d{6}\u00ad\d{2}'
+    #pattern = r'[a-zA-Zа-яА-ЯёЁ]{2}\d{6}\u00ad\d{2}'
+    pattern = r'[a-zA-Zа-яА-ЯёЁ]{2,}\u00ad?\d{5,}\u00ad\d{2}'
     return re.findall(pattern, text)[0].replace('\u00ad', '-')
 
 
